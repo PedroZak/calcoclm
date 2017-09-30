@@ -1,0 +1,668 @@
+TITLE CALCULADORA
+.MODEL SMALL
+.STACK 100H
+.DATA 
+ bell		EQU 07H
+
+ bin 		DB ,0DH,0AH,"                       Calculadora 8086                                  ",0DH,0AH
+ bin0		DB ,0DH,0AH,"                   Escolha a base desejada                               ",0DH,0AH
+ bin1		DB "A. Decimal",0DH,0AH
+ bin2		DB "B. Binario",0DH,0AH
+ bin3	 	DB "C. Hexadecimal",0DH,0AH
+ bin4		DB "D. Octal",0DH,0AH, '$'
+
+ msg00		DB ,0DH,0AH,"                     Escolha uma operacao:                               ",0DH,0AH
+ msg01		DB "0. AND",0DH,0AH
+ msg02		DB "1. OR",0DH,0AH
+ msg03		DB "2. XOR",0DH,0AH
+ msg04		DB "3. NOT",0DH,0AH
+ msg05	 	DB "4. Soma",0DH,0AH
+ msg06		DB "5. Subtracao",0DH,0AH
+ msg07		DB "6. Multiplicacao",0DH,0AH
+ msg08		DB "7. Divisao",0DH,0AH
+ msg09		DB "8. Multiplicacao por 2",0DH,0AH
+ msg10		DB "9. Divisao por 2",0DH,0AH, '$'
+
+ ; msgn		DB "Digite o primeiro numero:$"
+ ; msgn1	DB "Digite o segundo numero: $"
+ ; msgn2	DB "O resultado e: $"
+ 
+ CONTINUAR 	DB ,0DH,0AH,"Deseja continuar? S ou N",0DH,0AH, '$'
+ VAI 		DB ?
+ 
+ ENT1		DW ?
+ ENT2		DW ?
+ 
+.CODE
+	
+MAIN PROC
+	MOV AX,@DATA
+	MOV DS,AX
+MENUB PROC
+
+	LEA DX,bin ;--> printa menu bin
+	MOV AH,9H
+	INT 21H
+
+	MOV AH,1H ;--> recebe opcao do menu bin
+	INT 21H
+	
+	CMP AL,41H
+	JE MENUDEC
+	
+	CMP AL,61H
+	JE MENUDEC
+	
+	; CMP AL,42H
+	; JE LINHABIN
+	
+	; CMP AL,62H
+	; JE LINHABIN
+	
+	; CMP AL,43H
+	; JE LINHAHEXA
+	
+	; CMP AL,63H
+	; JE LINHAHEXA
+	
+	; LINHABIN:
+		; CALL MENUBIN
+		
+	;LINHAHEXA:
+		;CALL MENUHEXA
+
+MENUB ENDP
+
+MENUDEC PROC
+	
+	MOV AX,@DATA
+	MOV DS,AX
+	
+	LEA DX,msg00 ;--> printa menu de operacoes
+	MOV AH,9H
+	INT 21H
+
+	MOV AH,1H ;--> recebe opcao menu de operacaoes
+	INT 21H
+	
+	CMP AL,30H
+	JE LISTA1
+	
+	CMP AL,31H
+	JE LISTA2
+	
+	CMP AL,32H
+	JE LISTA3
+	
+	CMP AL,33H
+	JE LISTA4
+	
+	CMP AL,34H
+	JE LISTA5
+	
+	CMP AL,35H
+	JE LISTA6
+	
+	CMP AL,36H
+	JE LISTA7
+	
+	CMP AL,37H
+	JE LISTA8
+	
+	CMP AL,38H
+	JE LISTA9
+	
+	CMP AL,39H
+	JE LISTA10
+	
+;DECIMAL_________________________________________________________________________________________________________________________________________________________
+
+MENUDEC ENDP
+
+	LISTA1:
+		CALL AND0
+
+	LISTA2:
+		CALL OR0
+	
+	LISTA3:
+		CALL XOR0
+	
+	LISTA4:
+		CALL NOT0
+	
+	LISTA5:
+		CALL SOMA
+	
+	LISTA6:
+		CALL SUBT
+	
+	LISTA7:
+		CALL MULT
+	
+	LISTA8:
+		CALL DIVI
+	
+	LISTA9:
+		CALL MULT2
+	
+	LISTA10:
+		CALL DIVI2
+
+SOMA PROC
+
+		CALL PRINT_ENTER
+		CALL SOMAE
+		MOV BX,AX
+		CALL SOMAE
+		ADD AX,BX
+		CALL SOMAS
+		CALL LOOP0
+		
+SOMA ENDP
+
+SUBT PROC
+
+		CALL PRINT_ENTER
+		CALL SOMAE
+		MOV ENT1,AX
+		CALL SOMAE
+		MOV BX, ENT1
+		SUB BX,AX
+		MOV AX, BX
+		CALL SOMAS
+		CALL LOOP0
+
+SUBT ENDP
+
+AND0 PROC
+
+		CALL PRINT_ENTER
+		CALL SOMAE
+		MOV BX,AX
+		CALL SOMAE
+		AND AX,BX
+		CALL SOMAS
+		CALL LOOP0
+		
+AND0 ENDP
+
+OR0 PROC
+
+		CALL PRINT_ENTER
+		CALL SOMAE
+		MOV BX,AX
+		CALL SOMAE
+		OR AX,BX
+		CALL SOMAS
+		CALL LOOP0
+		
+OR0 ENDP
+
+XOR0 PROC
+
+		CALL PRINT_ENTER
+		CALL SOMAE
+		MOV BX,AX
+		CALL SOMAE
+		XOR AX,BX
+		CALL SOMAS
+		CALL LOOP0
+		
+XOR0 ENDP
+
+NOT0 PROC
+
+		CALL PRINT_ENTER
+		CALL SOMAE
+		NOT AX
+		CALL SOMAS
+		CALL LOOP0
+		
+NOT0 ENDP
+
+MULT PROC
+		CALL PRINT_ENTER
+		CALL SOMAE
+		MOV BX,AX
+		CALL SOMAE
+		IMUL BX
+		CALL SOMAS
+		CALL LOOP0
+
+MULT ENDP
+
+DIVI PROC
+
+		CALL PRINT_ENTER
+		CALL SOMAE
+		MOV ENT1,AX
+		CALL SOMAE
+		MOV ENT2,AX
+		MOV AX, ENT1
+		MOV	BX,ENT2
+		XOR	DX,DX
+		IDIV BX
+		CALL SOMAS
+		CALL LOOP0
+
+DIVI ENDP
+
+MULT2 PROC
+
+		CALL PRINT_ENTER
+		CALL SOMAE
+		MOV CL,AL
+		
+		CALL SOMAE
+		MOV BX,2D
+MULTIP: MUL BX
+		DEC CL
+		CMP CL,0
+		JE PRINT
+		JMP MULTIP
+PRINT:  CALL SOMAS
+		CALL LOOP0
+
+MULT2 ENDP
+
+DIVI2 PROC
+
+		CALL PRINT_ENTER
+		CALL SOMAE
+		MOV CL,AL
+		CALL SOMAE
+		CBW
+		
+		MOV BX,2D
+DIVISAO:DIV BL
+		XOR AH,AH
+		DEC CL
+		CMP CL,0
+		JE PRINTA
+		JMP DIVISAO
+PRINTA: CALL SOMAS
+		CALL LOOP0
+
+DIVI2 ENDP
+	
+SOMAE PROC 
+	
+		PUSH BX
+		PUSH CX
+		PUSH DX ;salvando registradores que serão usados
+		XOR BX,BX ;BX acumula o total, valor inicial 0
+		XOR CX,CX ;CX indicador de sinal (negativo = 1), inicial = 0
+		MOV AH,1h
+		INT 21h ;le caracter no AL
+		CMP AL, '-' ;sinal negativo?
+		JE MENOS
+		CMP AL,'+' ;sinal positivo?
+		JE MAIS
+		JMP NUM ;se nao é sinal, então vá processar o caracter
+	MENOS: MOV CX,1 ;negativo = verdadeiro
+	MAIS: INT 21h ;le um outro caracter
+	NUM: AND AX,000Fh ;junta AH a AL, converte caracter para binário
+		PUSH AX ;salva AX (valor binário) na pilha
+		MOV AX,10 ;prepara constante 10
+		MUL BX ;AX = 10 x total, total está em BX
+		POP BX ;retira da pilha o valor salvo, vai para BX
+		ADD BX,AX ;total = total x 10 + valor binário
+		MOV AH,1h
+		INT 21h ;le um caracter
+		CMP AL,0Dh ;é o CR ?
+		JNE NUM ;se não, vai processar outro dígito em NUM
+		MOV AX,BX ;se é CR, então coloca o total calculado em AX
+		CMP CX,1 ;o numero é negativo?
+		JNE SAIDA ;não
+		NEG AX ;sim, faz-se seu complemento de 2
+	SAIDA: 
+		POP DX
+		POP CX
+		POP BX ;restaura os conteúdos originais
+		RET ;retorna a rotina que chamou
+	SOMAE ENDP
+
+	SOMAS PROC ;exibe o conteudo de AX como decimal inteiro com sinal
+		;variaveis de entrada: AX -> valor binario equivalente do número decimal
+		;variaveis de saida: nehuma (exibição de dígitos direto no monitor de video)
+		PUSH AX
+		PUSH BX
+		PUSH CX
+		PUSH DX ;salva na pilha os registradores usados
+		OR AX,AX ;prepara comparação de sinal
+		JGE PT1 ;se AX maior ou igual a 0, vai para PT1
+		PUSH AX ;como AX menor que 0, salva o número na pilha
+		MOV DL,'-' ;prepara o caracter ' - ' para sair
+		MOV AH,2h ;prepara exibição
+		INT 21h ;exibe ' - '
+		POP AX ;recupera o número
+		NEG AX ;troca o sinal de AX (AX = - AX)
+		;obtendo dígitos decimais e salvando-os temporariamente na pilha
+	PT1: XOR CX,CX ;inicializa CX como contador de dígitos
+		MOV BX,10 ;BX possui o divisor
+	PT2: XOR DX,DX ;inicializa o byte alto do dividendo em 0; restante é AX
+		DIV BX ;após a execução, AX = quociente; DX = resto
+		PUSH DX ;salva o primeiro dígito decimal na pilha (1o. resto)
+		INC CX ;contador = contador + 1
+		OR AX,AX ;quociente = 0 ? (teste de parada)
+		JNE PT2 ;não, continuamos a repetir o laço
+		;exibindo os dígitos decimais (restos) no monitor, na ordem inversa
+		MOV AH,2h ;sim, termina o processo, prepara exibição dos restos
+	PT3: POP DX ;recupera dígito da pilha colocando-o em DL (DH = 0)
+		ADD DL,30h ;converte valor binário do dígito para caracter ASCII
+		INT 21h ;exibe caracter
+		LOOP PT3 ;realiza o loop ate que CX = 0
+		POP DX ;restaura o conteúdo dos registros
+		POP CX
+		POP BX
+		POP AX ;restaura os conteúdos dos registradores
+		RET ;retorna à rotina que chamou
+SOMAS ENDP
+
+;END DECIMAL_____________________________________________________________________________________________________________________________________________________
+
+;BINARIO_________________________________________________________________________________________________________________________________________________________
+
+MENUBIN PROC
+	
+	MOV AX,@DATA
+	MOV DS,AX
+	
+	LEA DX,msg00 ;--> printa menu de operacoes
+	MOV AH,9H
+	INT 21H
+
+	MOV AH,1H ;--> recebe opcao menu de operacaoes
+	INT 21H
+	
+	CMP AL,30H
+	JE LISTAB1
+	
+	CMP AL,31H
+	JE LISTAB2
+	
+	CMP AL,32H
+	JE LISTAB3
+	
+	CMP AL,33H
+	JE LISTAB4
+	
+	CMP AL,34H
+	JE LISTAB5
+	
+	CMP AL,35H
+	JE LISTAB6
+	
+	CMP AL,36H
+	;JE LISTAB7
+	
+	CMP AL,37H
+	;JE LISTAB8
+	
+	CMP AL,38H
+	JE LISTAB9
+	
+	CMP AL,39H
+	JE LISTAB10
+	
+MENUBIN ENDP
+
+	LISTAB1:
+		;CALL ANDB0
+
+	LISTAB2:
+		;CALL ORB0
+	
+	LISTAB3:
+		;CALL XORB0
+	
+	LISTAB4:
+		;CALL NOTB0
+	
+	LISTAB5:
+		;CALL SOMAB0
+	
+	LISTAB6:
+		;CALL SUBTB0
+	
+	;LISTAB7:
+		;CALL MULTB0
+	
+	;LISTAB8:
+		;CALL DIVIB0
+	
+	LISTAB9:
+		;CALL MULT2B0
+	
+	LISTAB10:
+		;CALL DIVI2B0
+		
+SOMAB0 PROC
+
+		CALL PRINT_ENTER
+		CALL SOMAE
+		MOV BX,AX
+		CALL SOMAE
+		ADD AX,BX
+		CALL SOMAS
+		CALL LOOP0
+		
+SOMAB0 ENDP
+
+SUBTB0 PROC
+
+		CALL PRINT_ENTER
+		CALL SOMAE
+		MOV ENT1,AX
+		CALL SOMAE
+		MOV BX, ENT1
+		SUB BX,AX
+		MOV AX, BX
+		CALL SOMAS
+		CALL LOOP0
+
+SUBTB0 ENDP
+
+ANDB0 PROC
+
+		CALL PRINT_ENTER
+		CALL SOMAE
+		MOV BX,AX
+		CALL SOMAE
+		AND AX,BX
+		CALL SOMAS
+		CALL LOOP0
+		
+ANDB0 ENDP
+
+ORB0 PROC
+
+		CALL PRINT_ENTER
+		CALL SOMAE
+		MOV BX,AX
+		CALL SOMAE
+		OR AX,BX
+		CALL SOMAS
+		CALL LOOP0
+		
+ORB0 ENDP
+
+XORB0 PROC
+
+		CALL PRINT_ENTER
+		CALL SOMAE
+		MOV BX,AX
+		CALL SOMAE
+		XOR AX,BX
+		CALL SOMAS
+		CALL LOOP0
+		
+XORB0 ENDP
+
+NOTB0 PROC
+
+		CALL PRINT_ENTER
+		CALL SOMAE
+		NOT AX
+		CALL SOMAS
+		CALL LOOP0
+		
+NOTB0 ENDP
+
+MULTB0 PROC
+		CALL PRINT_ENTER
+		CALL SOMAE
+		MOV BX,AX
+		CALL SOMAE
+		IMUL BX
+		CALL SOMAS
+		CALL LOOP0
+
+MULTB0 ENDP
+
+DIVIB0 PROC
+
+		CALL PRINT_ENTER
+		CALL SOMAE
+		MOV ENT1,AX
+		CALL SOMAE
+		MOV ENT2,AX
+		MOV AX, ENT1
+		MOV	BX,ENT2
+		XOR	DX,DX
+		IDIV BX
+		CALL SOMAS
+		CALL LOOP0
+
+DIVIB0 ENDP
+
+MULT2B0 PROC
+
+		CALL PRINT_ENTER
+		CALL SOMAE
+		MOV CL,AL
+		
+		CALL SOMAE
+		MOV BX,2D
+MULT1:  MUL BX
+		DEC CL
+		CMP CL,0
+		JE PR1NT
+		JMP MULT1
+PR1NT:  CALL SOMAS
+		CALL LOOP0
+
+MULT2B0 ENDP
+
+DIVI2B0 PROC
+
+		CALL PRINT_ENTER
+		CALL SOMAE
+		MOV CL,AL
+		CALL SOMAE
+		CBW
+		
+		MOV BX,2D
+D1VISAO:DIV BL
+		XOR AH,AH
+		DEC CL
+		CMP CL,0
+		JE PR1NTA
+		JMP D1VISAO
+PR1NTA: CALL SOMAS
+		CALL LOOP0
+
+DIVI2B0 ENDP
+		
+ENTRABIN PROC 
+
+		MOV CX,16
+		MOV AH,1H
+		XOR BX,BX
+		INT 21H
+	
+	TOPO:CMP AL,0DH
+		JE FIM
+		AND AL,0FH
+	 
+		SHL BX,1
+		OR BL,AL
+		INT 21H
+		
+	FIM:
+	 
+LOOP TOPO
+
+ENTRABIN ENDP
+
+SAIDABIN PROC
+
+		MOV CX,16
+		MOV AH,2H
+		
+PARTE1: ROL BX,1
+		JNC PARTE2
+		
+		MOV DL,31H
+		INT 21H
+		JMP LUPI
+PARTE2: MOV DL,30H
+		INT 21H
+		
+   LUPI:LOOP PARTE1
+		
+	;FIM:
+
+SAIDABIN ENDP
+
+;END BINARIO_____________________________________________________________________________________________________________________________________________________
+
+;HEXA____________________________________________________________________________________________________________________________________________________________
+
+
+
+;END HEXA________________________________________________________________________________________________________________________________________________________
+
+;OCTAL___________________________________________________________________________________________________________________________________________________________
+
+
+
+;END OCTAL_______________________________________________________________________________________________________________________________________________________
+
+PRINT_ENTER PROC
+	MOV AH,2H
+	MOV DL,0AH
+	INT 21H
+	MOV DL,0DH
+	INT 21H
+	RET
+PRINT_ENTER ENDP
+
+LOOP0 PROC
+	MOV AH,09H
+	MOV DX,OFFSET CONTINUAR
+	INT 21H
+	MOV AH,1H
+	INT 21H
+	MOV VAI,AL
+	MOV AL,VAI
+	CMP AL,4EH
+	JE EXIT
+	CMP AL,6EH
+	JE EXIT
+	CMP AL,53H
+	CALL MENUB
+	CMP AL,73H
+	CALL MENUB
+LOOP0 ENDP
+
+EXIT PROC
+
+	MOV AH,4CH
+	INT 21H
+	
+EXIT ENDP
+
+MAIN ENDP
+END MAIN
